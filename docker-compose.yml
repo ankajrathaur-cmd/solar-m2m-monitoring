@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    container_name: m2m-dashboard
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./database:/app/database
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: m2m-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  receiver:
+    build: .
+    container_name: m2m-receiver
+    command: python server/receiver.py
+    volumes:
+      - ./database:/app/database
+    depends_on:
+      - mqtt
+    restart: unless-stopped
+
+  device:
+    build: .
+    container_name: m2m-device
+    command: python device/machine.py
+    depends_on:
+      - mqtt
+    restart: unless-stopped

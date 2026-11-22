@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Machine Monitoring System</title>
+    <meta http-equiv="refresh" content="5">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef2f7;
+            margin: 0;
+            padding: 25px;
+            text-align: center;
+        }
+
+        h1 { color: #123456; }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 10px;
+            width: 40%;
+            min-width: 280px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px #ccc;
+        }
+
+        .temperature {
+            font-size: 42px;
+            font-weight: bold;
+            color: #087f5b;
+        }
+
+        .high {
+            color: red;
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        .normal {
+            color: green;
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #123456;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Smart Machine Monitoring System</h1>
+<h2>Live Machine Monitoring Dashboard</h2>
+
+<div class="container">
+
+{% for machine in ["MACHINE-001", "MACHINE-002"] %}
+{% set machine_records = records | selectattr(0, "equalto", machine) | list %}
+
+<div class="card">
+    <h2>{{ machine }}</h2>
+
+    {% if machine_records %}
+        <div class="temperature">
+            {{ machine_records[0][1] }} °C
+        </div>
+
+        {% if machine_records[0][1] > 40 %}
+            <p class="high">HIGH TEMPERATURE ALERT!</p>
+        {% else %}
+            <p class="normal">NORMAL</p>
+        {% endif %}
+
+    {% else %}
+        <p>No Data Available</p>
+    {% endif %}
+</div>
+
+{% endfor %}
+
+</div>
+
+<div class="card" style="width:85%; margin:auto;">
+    <h2>Temperature History</h2>
+    <canvas id="temperatureChart"></canvas>
+</div>
+
+<div class="card" style="width:85%; margin:auto;">
+    <h2>Recent Machine Records</h2>
+
+    <table>
+        <tr>
+            <th>Machine ID</th>
+            <th>Temperature</th>
+            <th>Timestamp</th>
+        </tr>
+
+        {% for row in records %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }} °C</td>
+            <td>{{ row[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+const records = {{ records | tojson }};
+
+const machine1 = records.filter(row => row[0] === "MACHINE-001").reverse();
+const machine2 = records.filter(row => row[0] === "MACHINE-002").reverse();
+
+new Chart(document.getElementById("temperatureChart"), {
+    type: "line",
+    data: {
+        labels: records.map(row => row[2]).reverse(),
+        datasets: [
+            {
+                label: "MACHINE-001",
+                data: machine1.map(row => row[1]),
+                borderWidth: 2,
+                tension: 0.3
+            },
+            {
+                label: "MACHINE-002",
+                data: machine2.map(row => row[1]),
+                borderWidth: 2,
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+
+</body>
+</html>
