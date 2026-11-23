@@ -29,3 +29,5 @@ def test_home_page(monkeypatch):
     response = client.get("/")
 
     assert response.status_code == 200
+    assert b"Smart Machine Monitoring System" in response.data
+    assert b"Live Machine Monitoring Dashboard" in response.data
